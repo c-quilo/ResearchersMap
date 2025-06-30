@@ -26,7 +26,7 @@ else:
 
 available_roles = ["PI", "PhD/ECR", "Researcher"]
 selected_roles = st.sidebar.multiselect("Filter by role", available_roles, default=available_roles)
-top_n = st.sidebar.slider("🔝 Show top N researchers", min_value=10, max_value=100, value=100, step=1)
+top_n = st.sidebar.slider("🔝 Show top N researchers", min_value=10, max_value=len(df), value=10, step=1)
 
 generate = st.sidebar.button("🚀 Generate Network")
 
@@ -53,9 +53,7 @@ if generate:
     net.force_atlas_2based(gravity=-50)
 
     author_names = set(df["display_name"])
-    institutions = df["current_affiliation"].dropna().unique()
-    for inst in institutions:
-        net.add_node(inst, label=inst, shape="box", color="lightblue")
+    added_institutions = set()
 
     for _, row in df.iterrows():
         author = row["display_name"]
@@ -66,7 +64,11 @@ if generate:
         tooltip = f"{author}; {inst}; Works: {row['number_of_works']}; Role: {role}"
 
         net.add_node(author, label=author, shape="dot", size=size, title=tooltip, color=color)
-        if inst:
+
+        if pd.notna(inst):
+            if inst not in added_institutions:
+                net.add_node(inst, label=inst, shape="box", color="lightblue")
+                added_institutions.add(inst)
             net.add_edge(author, inst)
 
     # Build co-authorship edges from 'associated_dois'
