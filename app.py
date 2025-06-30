@@ -26,9 +26,9 @@ else:
 
 available_roles = ["PI", "PhD/ECR", "Researcher"]
 selected_roles = st.sidebar.multiselect("Filter by role", available_roles, default=available_roles)
-top_n = st.sidebar.slider("🔝 Show top N researchers", min_value=10, max_value=len(df), value=10, step=1)
+top_n = st.sidebar.slider("Show top N researchers", min_value=10, max_value=len(df), value=10, step=1)
 
-generate = st.sidebar.button("🚀 Generate Network")
+generate = st.sidebar.button("Generate Network")
 
 st.title("🔬 European Researcher Network Explorer")
 
