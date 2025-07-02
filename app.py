@@ -78,6 +78,8 @@ if generate:
     for _, row in df.iterrows():
         author = row["display_name"]
         inst = row["current_affiliation"]
+        if inst in ["Unknown", "Not Found"]:
+            inst = row["most_recent_affiliation_name"]
         size = max(5, row["number_of_works"])
         role = row["role"]
         color = {"PI": "darkblue", "PhD/ECR": "pink", "Researcher": "salmon"}.get(role, "gray")
