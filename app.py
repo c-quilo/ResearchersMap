@@ -11,13 +11,24 @@ import os
 from PIL import Image
 
 
-theme = st.get_option("theme.base")
-if theme == "dark":
-    logo = Image.open("logo/logo_dark.png")
-else:
-    logo = Image.open("logo/logo_light.png")
+st.sidebar.markdown("""
+    <style>
+    .logo-dark { display: none; }
+    .logo-light { display: block; }
 
-st.sidebar.image(logo, use_column_width=True)
+    @media (prefers-color-scheme: dark) {
+        .logo-dark { display: block; }
+        .logo-light { display: none; }
+    }
+    </style>
+
+    <div class="logo-light">
+        <img src="logo/logo_light.png" width="100%%">
+    </div>
+    <div class="logo-dark">
+        <img src="logo/logo_dark.png" width="100%%">
+    </div>
+""", unsafe_allow_html=True)
 st.sidebar.title("📁 Select or Upload Data")
 
 # Preloaded CSVs
