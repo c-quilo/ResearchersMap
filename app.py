@@ -6,10 +6,13 @@ from itertools import combinations
 from collections import defaultdict
 import streamlit.components.v1 as components
 from pathlib import Path
-
+import ast
 # --- Sidebar: Upload or Select CSV file ---
 import os
+from PIL import Image
 
+logo = Image.open("logo/logo.png")
+st.sidebar.image(logo, use_container_width=True)
 st.sidebar.title("📁 Select or Upload Data")
 
 # Preloaded CSVs
@@ -29,6 +32,8 @@ if researcher_file is not None:
 elif selected_preloaded != "None":
     df = pd.read_csv(preloaded_files[selected_preloaded])
 else:
+    st.title("🌎 Researcher Network Explorer for Environmental Pollution")
+    st.info("👈 Use the sidebar to set filters and generate the network.")
     st.stop()
 
 # --- Sidebar: Filters ---
@@ -46,7 +51,7 @@ top_n = st.sidebar.slider("🔝 Show top N researchers", min_value=10, max_value
 
 generate = st.sidebar.button("🚀 Generate Network")
 
-st.title("European Researcher Network Explorer for Environmental Pollution")
+st.title("🌎 Researcher Network Explorer for Environmental Pollution")
 
 if generate:
     if not selected_countries:
@@ -94,10 +99,12 @@ if generate:
         author = row["display_name"]
         if pd.isna(row["associated_dois"]):
             continue
-        for doi in row["associated_dois"].split(";"):
-            doi = doi.strip()
-            if doi:
+        try:
+            dois = ast.literal_eval(row["associated_dois"])
+            for doi in set(d.strip().lower() for d in dois if isinstance(d, str) and d.strip()):
                 doi_to_authors[doi].add(author)
+        except (ValueError, SyntaxError):
+            continue
 
     coauthor_counts = defaultdict(int)
     for authors in doi_to_authors.values():
@@ -114,4 +121,4 @@ if generate:
     components.html(Path(html_path).read_text(encoding="utf-8"), height=800, width=1400, scrolling=False)
 
 else:
-    st.info("Use the sidebar to set filters and generate the network.")
+    st.info("👈 Use the sidebar to set filters and generate the network.")
