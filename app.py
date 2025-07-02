@@ -1,4 +1,5 @@
 import streamlit as st
+st.set_page_config(layout="wide")
 import pandas as pd
 from pyvis.network import Network
 from itertools import combinations
@@ -6,14 +7,29 @@ from collections import defaultdict
 import streamlit.components.v1 as components
 from pathlib import Path
 
-# --- Sidebar: Upload CSV file ---
-st.sidebar.title("📁 Upload Data")
+# --- Sidebar: Upload or Select CSV file ---
+import os
 
-researcher_file = st.sidebar.file_uploader("Upload researcher summary CSV", type="csv")
-if not researcher_file:
-    researcher_file = "data/Contact_list_deeptech_researchers.csv"
+st.sidebar.title("📁 Select or Upload Data")
 
-df = pd.read_csv(researcher_file)
+# Preloaded CSVs
+preloaded_files = {
+    "Non-toxic pesticide substitutes": "data/Challenge_1.csv",
+    "Alternatives to endocrine disruptors": "data/Challenge_3.csv",
+    "Removing endocrine disruptors": "data/Challenge_4.csv",
+
+}
+
+selected_preloaded = st.sidebar.selectbox("Choose a preloaded dataset:", ["None"] + list(preloaded_files.keys()))
+
+researcher_file = st.sidebar.file_uploader("Or upload your own researcher CSV", type="csv")
+
+if researcher_file is not None:
+    df = pd.read_csv(researcher_file)
+elif selected_preloaded != "None":
+    df = pd.read_csv(preloaded_files[selected_preloaded])
+else:
+    st.stop()
 
 # --- Sidebar: Filters ---
 available_countries = sorted(df["country_code"].dropna().unique())
@@ -30,7 +46,7 @@ top_n = st.sidebar.slider("🔝 Show top N researchers", min_value=10, max_value
 
 generate = st.sidebar.button("🚀 Generate Network")
 
-st.title("🔬 European Researcher Network Explorer")
+st.title("European Researcher Network Explorer for Environmental Pollution")
 
 if generate:
     if not selected_countries:
@@ -71,24 +87,31 @@ if generate:
                 added_institutions.add(inst)
             net.add_edge(author, inst)
 
-    # Build co-authorship edges from 'associated_dois'
-    coauthor_counts = defaultdict(int)
+    # --- Build co-authorship edges based on shared DOIs ---
+    doi_to_authors = defaultdict(set)
+
     for _, row in df.iterrows():
         author = row["display_name"]
         if pd.isna(row["associated_dois"]):
             continue
-        coauthors = row["associated_dois"].split(";")
-        coauthors = [a.strip() for a in coauthors if a.strip() in author_names and a.strip() != author]
-        for coauthor in coauthors:
-            key = tuple(sorted((author, coauthor)))
+        for doi in row["associated_dois"].split(";"):
+            doi = doi.strip()
+            if doi:
+                doi_to_authors[doi].add(author)
+
+    coauthor_counts = defaultdict(int)
+    for authors in doi_to_authors.values():
+        for a1, a2 in combinations(sorted(authors), 2):
+            key = tuple(sorted((a1, a2)))
             coauthor_counts[key] += 1
 
     for (a1, a2), count in coauthor_counts.items():
-        net.add_edge(a1, a2, color="green", value=count, title=f"Co-authored {count} times")
+        if a1 in author_names and a2 in author_names:
+            net.add_edge(a1, a2, color="green", value=count, title=f"Co-authored {count} times")
 
     html_path = "/tmp/pyvis_graph.html"
     net.write_html(html_path)
-    components.html(Path(html_path).read_text(encoding="utf-8"), height=800, scrolling=False)
+    components.html(Path(html_path).read_text(encoding="utf-8"), height=800, width=1400, scrolling=False)
 
 else:
     st.info("Use the sidebar to set filters and generate the network.")
