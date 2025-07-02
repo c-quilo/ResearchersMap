@@ -7,12 +7,17 @@ from collections import defaultdict
 import streamlit.components.v1 as components
 from pathlib import Path
 import ast
-# --- Sidebar: Upload or Select CSV file ---
 import os
 from PIL import Image
 
-logo = Image.open("logo/logo.png")
-st.sidebar.image(logo, use_container_width=True)
+
+theme = st.get_option("theme.base")
+if theme == "dark":
+    logo = Image.open("logo/logo_dark.png")
+else:
+    logo = Image.open("logo/logo_light.png")
+
+st.sidebar.image(logo, use_column_width=True)
 st.sidebar.title("📁 Select or Upload Data")
 
 # Preloaded CSVs
