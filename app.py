@@ -10,25 +10,8 @@ import ast
 import os
 from PIL import Image
 
-
-st.sidebar.markdown("""
-    <style>
-    .logo-dark { display: none; }
-    .logo-light { display: block; }
-
-    @media (prefers-color-scheme: dark) {
-        .logo-dark { display: block; }
-        .logo-light { display: none; }
-    }
-    </style>
-
-    <div class="logo-light">
-        <img src="logo/logo_light.png" width="100%%">
-    </div>
-    <div class="logo-dark">
-        <img src="logo/logo_dark.png" width="100%%">
-    </div>
-""", unsafe_allow_html=True)
+logo = Image.open("logo/logo_light.png")
+st.sidebar.image(logo, use_container_width=True)
 st.sidebar.title("📁 Select or Upload Data")
 
 # Preloaded CSVs
