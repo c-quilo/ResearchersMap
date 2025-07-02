@@ -78,7 +78,7 @@ if generate:
     for _, row in df.iterrows():
         author = row["display_name"]
         inst = row["current_affiliation"]
-        if inst in ["Unknown", "Not Found"]:
+        if pd.isna(inst) or str(inst).strip().lower() in ["not found", "unknown"]:
             inst = row["most_recent_affiliation_name"]
         size = max(5, row["number_of_works"])
         role = row["role"]
